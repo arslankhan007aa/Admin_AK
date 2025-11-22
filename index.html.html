@@ -1,0 +1,439 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html>
+<head>
+  <title>AK Trade Admin 🕵️ (Configured)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body{
+      background: linear-gradient(180deg,#3F0000,#000);
+      color:#fff;
+      font-family:sans-serif;
+      margin:0;
+      padding-bottom:90px;
+    }
+    .box{
+      background:rgba(0,0,0,0.45);
+      backdrop-filter:blur(6px);
+      padding:20px;
+      border-radius:14px;
+      margin:15px;
+      box-shadow:0 0 12px #FF000055;
+    }
+    input, select{
+      width:100%;
+      padding:12px;
+      border-radius:10px;
+      border:1px solid #FF0000;
+      background:#1F0000;
+      color:#fff;
+      margin-top:10px;
+    }
+    button{
+      width:100%;
+      padding:12px;
+      background:#FF0000;
+      color:#fff;
+      border:none;
+      border-radius:10px;
+      margin-top:10px;
+      font-size:17px;
+      font-weight:600;
+      box-shadow:0 0 10px #FF0000AA;
+      transition: background 0.3s;
+    }
+    button:hover { background: #CC0000; }
+    .approve-btn { background:#00AA00; box-shadow:0 0 10px #00AA00AA; margin-top:5px; }
+    .approve-btn:hover { background: #008800; }
+    .reject-btn { background:#880000; box-shadow:0 0 10px #880000AA; margin-top:5px; }
+    .reject-btn:hover { background: #660000; }
+
+    h2{ color:#FF4444; font-weight:700; }
+
+    .nav-btn-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    .nav-btn-container button {
+        flex-grow: 1;
+        min-width: 150px;
+        padding: 10px;
+        margin: 0;
+        font-size: 14px;
+    }
+
+    .data-list {
+        list-style: none;
+        padding: 0;
+    }
+    .data-list li {
+        background: #1F0000;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        border-left: 5px solid #FF0000;
+        word-wrap: break-word; 
+    }
+
+    .screenshot-container {
+        margin-top: 10px;
+        padding: 10px;
+        background: #000;
+        border-radius: 8px;
+        text-align: center;
+    }
+    .screenshot-container img {
+        max-width: 100%;
+        max-height: 200px;
+        display: block;
+        margin: 5px auto;
+        border: 2px solid #FF4444;
+    }
+
+    nav{
+      text-align:center;
+      padding:18px 0;
+      background:#000;
+      position:fixed;
+      bottom:0;
+      left:0;
+      right:0;
+      z-index:999;
+      box-shadow:0 -3px 10px #FF000055;
+    }
+    nav a{
+      color:#FF4444;
+      margin:0 14px;
+      font-size:18px;
+      text-decoration:none;
+      font-weight:600;
+    }
+    nav .logoutBtn{
+      color:#fff;
+      background:#FF0000;
+      padding:6px 12px;
+      border-radius:8px;
+    }
+    .hidden{ display:none; }
+    .muted { color:#ccc; font-size:13px; }
+  </style>
+</head>
+<body>
+
+  <h1 style="text-align:center; color:#FF4444;">AK Trade Admin 🕵️</h1>
+
+  <!-- LOGIN PAGE -->
+  <div id="adminLoginPage">
+    <div class="box">
+      <h2>Admin Login 🔐</h2>
+      <p style="color:yellow; font-size:14px;">**Note:** Using local fallback credentials for testing.</p>
+      <input id="adminUser" placeholder="Admin Username" value="admin">
+      <input id="adminPass" placeholder="Password" type="password" value="arslankhan007">
+
+      <button id="loginBtn" onclick="adminLogin()">Login</button>
+      <p id="loginInfo" class="muted">Username: 'admin', Password: 'arslankhan007'</p>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="adminDashboard" class="hidden">
+
+    <div class="box">
+      <h2>Admin Navigation</h2>
+      <div class="nav-btn-container">
+        <button onclick="showSection('counts')">📊 Counts</button>
+        <button onclick="showSection('allUsers')">🧑‍💻 All Users</button>
+        <button onclick="showSection('pendingDeposits')">💸 Pending Deposits</button>
+        <button onclick="showSection('pendingWithdraws')">🏧 Pending Withdrawals</button>
+      </div>
+    </div>
+
+    <div id="counts" class="box hidden">
+      <h2>📊 System Counts</h2>
+      <p>Total Users: <b id="totalUsersCount">0</b></p>
+      <p>Total Pending Deposits: <b id="pendingDepCount">0</b></p>
+      <p>Total Pending Withdrawals: <b id="pendingWidCount">0</b></p>
+    </div>
+
+    <div id="allUsers" class="box hidden">
+      <h2>🧑‍💻 All User Details</h2>
+      <ul id="allUsersList" class="data-list">
+        <li>Loading user data from Realtime Database...</li>
+      </ul>
+    </div>
+
+    <div id="pendingDeposits" class="box hidden">
+      <h2>💸 Pending Deposits (Plans)</h2>
+      <p style="color:yellow;">**Action:** Approve to set AdminApproved: True, which triggers plan activation on the user's side.</p>
+      <ul id="pendingDepositsList" class="data-list">
+        <li>No pending deposits.</li>
+      </ul>
+    </div>
+
+    <div id="pendingWithdraws" class="box hidden">
+      <h2>🏧 Pending Withdrawals</h2>
+      <ul id="pendingWithdrawsList" class="data-list">
+        <li>No pending withdrawals.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <nav id="adminNavBar" class="hidden">
+    <a onclick="showSection('counts')">Home</a>
+    <a onclick="adminLogout()" class="logoutBtn">Logout</a>
+  </nav>
+
+  <script type="module">
+    // --- USER PANEL'S FIREBASE CONFIG ---
+    // Using the configuration from your user panel (ak-trade-f8c93)
+    const firebaseConfig = {
+      apiKey: "AIzaSyCVcdtynCplhZkLvqLJer99z3PHb6W2VEs",
+      authDomain: "ak-trade-f8c93.firebaseapp.com",
+      databaseURL: "https://ak-trade-f8c93-default-rtdb.firebaseio.com",
+      projectId: "ak-trade-f8c93",
+      storageBucket: "ak-trade-f8c93.firebasestorage.app",
+      messagingSenderId: "873979008978",
+      appId: "1:873979008978:web:70564474ef8f09fd059a0b"
+    };
+
+    // Firebase SDK imports (Realtime Database)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.12.1/firebase-app.js";
+    import { getDatabase, ref, update, onValue } from "https://www.gstatic.com/firebasejs/9.12.1/firebase-database.js";
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app); 
+
+    // Admin Credentials (Local for simplicity)
+    const ADMIN_USER = "admin";
+    const ADMIN_PASS = "arslankhan007"; 
+
+    let isAuthenticated = false;
+    let allUsersData = {}; 
+    let withdrawalRequestsData = []; 
+
+    // --- Utility Functions ---
+
+    /* ---------- ADMIN LOGIN (Local Fallback) ---------- */
+    window.adminLogin = function() {
+      const user = document.getElementById("adminUser").value.trim();
+      const pass = document.getElementById("adminPass").value.trim();
+      
+      if (user === ADMIN_USER && pass === ADMIN_PASS) {
+        isAuthenticated = true;
+        loadDashboard();
+      } else {
+        alert("Login Failed: Invalid Admin Credentials.");
+      }
+    };
+
+    /* ---------- LOGOUT ---------- */
+    window.adminLogout = function() {
+      isAuthenticated = false;
+      location.reload();
+    };
+
+    /* ---------- DASHBOARD LOAD ---------- */
+    function loadDashboard(){
+      if (!isAuthenticated) return;
+
+      document.getElementById("adminLoginPage").classList.add("hidden");
+      document.getElementById("adminDashboard").classList.remove("hidden");
+      document.getElementById("adminNavBar").classList.remove("hidden");
+      
+      setupRealTimeListeners();
+      showSection("pendingDeposits");
+    }
+
+    /* ---------- REALTIME LISTENERS (RTDB) ---------- */
+    function setupRealTimeListeners() {
+      // 1. Users Collection Listener: Listens to the main 'users' node
+      onValue(ref(db, 'users'), (snapshot) => {
+        console.log("RTDB: Users snapshot received. Count:", snapshot.size);
+        
+        allUsersData = {};
+        // Iterate over the users object structure (username as key)
+        snapshot.forEach(childSnapshot => {
+          allUsersData[childSnapshot.key] = childSnapshot.val();
+        });
+        loadCounts();
+        displayAllUsers();
+        displayPendingDeposits();
+      }, (error) => {
+        console.error("RTDB Error: User data fetch failed:", error);
+      });
+
+      // 2. Withdrawals Collection Listener: Listens to the 'withdrawalRequests' node
+      onValue(ref(db, 'withdrawalRequests'), (snapshot) => {
+        console.log("RTDB: Withdrawals snapshot received. Count:", snapshot.size);
+        
+        withdrawalRequestsData = [];
+        snapshot.forEach(childSnapshot => {
+          withdrawalRequestsData.push({ id: childSnapshot.key, ...childSnapshot.val() });
+        });
+        loadCounts();
+        displayPendingWithdrawals();
+      }, (error) => {
+        console.error("RTDB Error: Withdrawal data fetch failed:", error);
+      });
+    }
+
+    /* ---------- SHOW SECTIONS ---------- */
+    window.showSection = function(sec){
+      ["counts","allUsers","pendingDeposits","pendingWithdraws"].forEach(id=>{
+        document.getElementById(id).classList.add("hidden");
+      });
+      document.getElementById(sec).classList.remove("hidden");
+
+      if (sec === "counts") loadCounts();
+      if (sec === "allUsers") displayAllUsers();
+      if (sec === "pendingDeposits") displayPendingDeposits();
+      if (sec === "pendingWithdraws") displayPendingWithdrawals();
+    };
+
+    /* ---------- COUNTS ---------- */
+    function loadCounts(){
+      const usersArray = Object.values(allUsersData);
+      document.getElementById('totalUsersCount').innerHTML = usersArray.length;
+      document.getElementById('pendingDepCount').innerHTML = usersArray.filter(u=>u.pendingDeposit).length;
+      document.getElementById('pendingWidCount').innerHTML = withdrawalRequestsData.filter(w=>w.status==="Pending").length;
+    }
+
+    /* ---------- ALL USERS ---------- */
+    function displayAllUsers(){
+      let list = document.getElementById("allUsersList");
+      list.innerHTML = "";
+      const usersArray = Object.entries(allUsersData);
+      
+      if (usersArray.length === 0) {
+        list.innerHTML = "<li>No user data available.</li>";
+        return;
+      }
+      
+      usersArray.forEach(([username, u])=>{
+        list.innerHTML += `
+          <li>
+            <strong>${escapeHtml(username)}</strong><br>
+            Balance: ${u.bal || 0} Rs<br>
+            Plan: ${u.plan || 'None'}<br>
+            Daily Income: ${u.daily || 0} Rs<br>
+            Referral By: ${u.ref || 'None'}<br>
+            Pending Deposit: ${u.pendingDeposit ? 'Yes (Plan: ' + u.pendingDeposit.plan + ')' : 'No'}<br>
+            Last Task: <span class="muted">${u.lastTaskDay || 'None'}</span>
+          </li>`;
+      });
+    }
+
+    /* ---------- PENDING DEPOSITS ---------- */
+    function displayPendingDeposits(){
+      let list = document.getElementById("pendingDepositsList");
+      list.innerHTML = "";
+
+      const pending = Object.entries(allUsersData).filter(([u, data]) => data.pendingDeposit);
+
+      if (pending.length === 0){
+        list.innerHTML = "<li>No pending deposits.</li>";
+        return;
+      }
+
+      pending.forEach(([username, u])=>{
+        let d = u.pendingDeposit;
+        let imgHtml = d && d.screenshot ? `<div class="screenshot-container"><img src="${escapeHtml(d.screenshot)}" alt="Payment Screenshot"/></div>` : "";
+        list.innerHTML += `
+          <li>
+            <strong>${escapeHtml(username)}</strong><br>
+            Amount: ${escapeHtml(String(d.amount || ''))} Rs<br>
+            Plan: ${escapeHtml(d.plan || '')}<br>
+            Method: ${escapeHtml(d.method || '')} @ ${escapeHtml(d.date || '')}<br>
+            ${imgHtml}
+            <button class="approve-btn" onclick="approvePlan('${escapeJs(username)}')">Approve</button>
+            <button class="reject-btn" onclick="rejectPlan('${escapeJs(username)}')">Reject</button>
+          </li>
+        `;
+      });
+    }
+
+    /* ---------- APPROVE / REJECT PLAN (RTDB Logic) ---------- */
+    window.approvePlan = async function(username){
+      try {
+        // Admin sets 'adminApproved' to true. The User Panel logic handles activation and clears pendingDeposit.
+        await update(ref(db, 'users/' + username), { adminApproved: true });
+        alert("Approved! User's plan will activate instantly.");
+      } catch (err) {
+        console.error("Approve error:", err);
+        alert("Approve failed: " + err.message);
+      }
+    };
+
+    window.rejectPlan = async function(username){
+      try {
+        // Admin clears pending deposit status and resets approval status
+        await update(ref(db, 'users/' + username), { pendingDeposit: null, adminApproved: false });
+        alert("Rejected! Deposit request cleared.");
+      } catch (err) {
+        console.error("Reject error:", err);
+        alert("Reject failed: " + err.message);
+      }
+    };
+
+    /* ---------- PENDING WITHDRAWALS ---------- */
+    function displayPendingWithdrawals(){
+      let list = document.getElementById("pendingWithdrawsList");
+      list.innerHTML = "";
+
+      let pending = withdrawalRequestsData.filter(w => w.status==="Pending");
+
+      if (pending.length===0){
+        list.innerHTML = "<li>No pending withdrawals.</li>";
+        return;
+      }
+
+      pending.forEach(w=>{
+        list.innerHTML += `
+          <li>
+            <strong>User: ${escapeHtml(w.user)}</strong><br>
+            Amount: ${escapeHtml(String(w.amount))} Rs<br>
+            Method: ${escapeHtml(w.type || '')}<br>
+            Account: ${escapeHtml(w.name || '')} (${escapeHtml(w.number || '')})<br>
+            Requested: <span class="muted">${escapeHtml(w.timestamp || '')}</span>
+            <button class="approve-btn" onclick="completeWithdraw('${escapeJs(w.id)}','Completed')">Complete (Paid)</button>
+            <button class="reject-btn" onclick="completeWithdraw('${escapeJs(w.id)}','Rejected')">Reject (Refund)</button>
+          </li>
+        `;
+      });
+    }
+
+    /* ---------- COMPLETE WITHDRAWAL (RTDB Logic) ---------- */
+    window.completeWithdraw = async function(id, status){
+      try {
+        // Update the status of the withdrawal request
+        await update(ref(db, 'withdrawalRequests/' + id), { status: status });
+        alert("Withdrawal request updated to: " + status);
+      } catch (err) {
+        console.error("completeWithdraw error:", err);
+        alert("Update failed: " + err.message);
+      }
+    };
+
+    /* ---------- Utilities ---------- */
+    function escapeHtml(str) {
+      if (!str && str !== 0) return '';
+      return String(str)
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'",'&#39;');
+    }
+    function escapeJs(s) {
+      if (!s && s !== 0) return '';
+      return String(s).replaceAll("'", "\\'").replaceAll('"','\\"');
+    }
+
+  </script>
+</body>
+</html>
+
